@@ -28,15 +28,13 @@ def token_required(f):
     return decorated
 
 
-def role_required(required_role):
-    def decorator(f):
-        @wraps(f)
-        def decorated(current_user, *args, **kwargs):
-            if current_user.role != required_role:
-                return jsonify({'message': 'Access denied. You do not have permission to perform this action.'}), 403
-            return f(current_user, *args, **kwargs)
-
-        return decorated
-
+def role_required(*roles):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(current_user, *args, **kwargs):
+            if current_user.role not in roles:
+                return jsonify({'message': 'Permission denied'}), 403
+            return func(current_user, *args, **kwargs)
+        return wrapper
     return decorator
 
