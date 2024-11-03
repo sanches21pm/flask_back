@@ -3,24 +3,53 @@ from flask_bcrypt import Bcrypt
 from sqlalchemy.orm import Session
 from models import User
 from database import SessionLocal
-from auth import token_required, role_required  # Импортируем декораторы
+from auth import token_required, role_required
 import jwt
 import datetime
 
 bp = Blueprint('routes', __name__)
 bcrypt = Bcrypt()
 
-
 # Эндпоинт для регистрации
 @bp.route('/register', methods=['POST'])
 def register():
+    """
+    Регистрация пользователя
+    ---
+    tags:
+      - User Management
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+              description: Имя пользователя
+            email:
+              type: string
+              description: Email пользователя
+            password:
+              type: string
+              description: Пароль пользователя
+            role:
+              type: string
+              description: Роль пользователя (по умолчанию \"user\")
+    responses:
+      201:
+        description: Пользователь успешно зарегистрирован
+      400:
+        description: Имя пользователя уже существует
+    """
     data = request.get_json()
     hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
     role = data.get('role', 'user')
 
     new_user = User(username=data['username'], email=data['email'], password=hashed_password, role=role)
 
-    db: Session = SessionLocal()  # создаем сессию
+    db: Session = SessionLocal()
     existing_user = db.query(User).filter_by(username=data['username']).first()
     if existing_user:
         db.close()
@@ -32,10 +61,42 @@ def register():
 
     return jsonify({'message': 'User registered successfully', 'role': role}), 201
 
-
 # Эндпоинт для получения токена
 @bp.route('/login', methods=['POST'])
 def login():
+    """
+    Получение токена доступа
+    ---
+    tags:
+      - User Management
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+              description: Имя пользователя
+            password:
+              type: string
+              description: Пароль пользователя
+    responses:
+      200:
+        description: Успешный вход в систему
+        schema:
+          type: object
+          properties:
+            access_token:
+              type: string
+              description: Токен доступа
+            token_type:
+              type: string
+              description: Тип токена
+      400:
+        description: Неверное имя пользователя или пароль
+    """
     data = request.get_json()
     db: Session = SessionLocal()
     user = db.query(User).filter_by(username=data['username']).first()
@@ -49,18 +110,57 @@ def login():
     db.close()
     return jsonify({'access_token': token, 'token_type': 'bearer'})
 
-
 # Защищенный эндпоинт для получения профиля
 @bp.route('/profile', methods=['GET'])
 @token_required
 def get_profile(current_user):
+    """
+    Получение профиля пользователя
+    ---
+    tags:
+      - User Management
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Профиль пользователя
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+            email:
+              type: string
+            role:
+              type: string
+    """
     return jsonify({'username': current_user.username, 'email': current_user.email, 'role': current_user.role})
-
 
 # Защищенный эндпоинт для обновления профиля
 @bp.route('/profile', methods=['PUT'])
 @token_required
 def update_profile(current_user):
+    """
+    Обновление профиля пользователя
+    ---
+    tags:
+      - User Management
+    security:
+      - Bearer: []
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              description: Новый email пользователя
+    responses:
+      200:
+        description: Профиль успешно обновлен
+    """
     data = request.get_json()
     db: Session = SessionLocal()
     db_user = db.query(User).filter_by(username=current_user.username).first()
@@ -69,37 +169,24 @@ def update_profile(current_user):
     db.close()
     return jsonify({'message': 'Profile updated successfully'})
 
-
 # Защищенный эндпоинт для удаления профиля
 @bp.route('/profile', methods=['DELETE'])
 @token_required
 def delete_profile(current_user):
+    """
+    Удаление профиля пользователя
+    ---
+    tags:
+      - User Management
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Профиль успешно удален
+    """
     db: Session = SessionLocal()
     db_user = db.query(User).filter_by(username=current_user.username).first()
     db.delete(db_user)
     db.commit()
     db.close()
     return jsonify({'message': 'User deleted successfully'})
-
-
-# Эндпоинт для администраторов для создания новых пользователей
-@bp.route('/admin/register', methods=['POST'])
-@token_required
-@role_required('admin')
-def admin_register(current_user):
-    data = request.get_json()
-    hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
-    new_user = User(username=data['username'], email=data['email'], password=hashed_password,
-                    role=data.get('role', 'user'))
-
-    db: Session = SessionLocal()
-    db.add(new_user)
-    db.commit()
-    db.close()
-    return jsonify({'message': 'User registered successfully by admin'}), 201
-
-
-# Эндпоинт для тестирования
-@bp.route('/test', methods=['GET'])
-def test_endpoint():
-    return jsonify({'message': 'Test successful'})
