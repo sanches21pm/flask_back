@@ -28,56 +28,19 @@ def list_products():
                 type: string
               price:
                 type: number
+              category_id:
+                type: integer
     """
-    db: Session = SessionLocal()
+    db = SessionLocal()
     products = db.query(Product).all()
     db.close()
     return jsonify([{
         'id': product.id,
         'name': product.name,
         'description': product.description,
-        'price': product.price
+        'price': product.price,
+        'category_id': product.category_id
     } for product in products])
-
-@products_bp.route('/products/<int:product_id>', methods=['GET'])
-def get_product(product_id):
-    """Получить информацию о конкретном продукте
-    ---
-    tags:
-      - Products
-    parameters:
-      - name: product_id
-        in: path
-        required: true
-        type: integer
-    responses:
-      200:
-        description: Информация о продукте
-        schema:
-          type: object
-          properties:
-            id:
-              type: integer
-            name:
-              type: string
-            description:
-              type: string
-            price:
-              type: number
-      404:
-        description: Продукт не найден
-    """
-    db: Session = SessionLocal()
-    product = db.query(Product).filter_by(id=product_id).first()
-    db.close()
-    if product is None:
-        return jsonify({'message': 'Product not found'}), 404
-    return jsonify({
-        'id': product.id,
-        'name': product.name,
-        'description': product.description,
-        'price': product.price
-    })
 
 @products_bp.route('/products', methods=['POST'])
 @token_required
@@ -105,6 +68,9 @@ def add_product(current_user):
             price:
               type: number
               description: Цена продукта
+            category_id:
+              type: integer
+              description: ID категории (опционально)
     responses:
       201:
         description: Продукт успешно добавлен
@@ -115,9 +81,10 @@ def add_product(current_user):
     new_product = Product(
         name=data['name'],
         description=data['description'],
-        price=data['price']
+        price=data['price'],
+        category_id=data.get('category_id')
     )
-    db: Session = SessionLocal()
+    db = SessionLocal()
     db.add(new_product)
     db.commit()
     db.close()
@@ -150,6 +117,9 @@ def update_product(current_user, product_id):
               type: string
             price:
               type: number
+            category_id:
+              type: integer
+              description: ID категории (опционально)
     responses:
       200:
         description: Продукт успешно обновлен
@@ -158,9 +128,9 @@ def update_product(current_user, product_id):
       403:
         description: Недостаточно прав
     """
-    db: Session = SessionLocal()
+    db = SessionLocal()
     product = db.query(Product).filter_by(id=product_id).first()
-    if product is None:
+    if not product:
         db.close()
         return jsonify({'message': 'Product not found'}), 404
 
@@ -168,7 +138,7 @@ def update_product(current_user, product_id):
     product.name = data.get('name', product.name)
     product.description = data.get('description', product.description)
     product.price = data.get('price', product.price)
-
+    product.category_id = data.get('category_id', product.category_id)
     db.commit()
     db.close()
     return jsonify({'message': 'Product updated successfully'})
@@ -196,9 +166,9 @@ def delete_product(current_user, product_id):
       403:
         description: Недостаточно прав
     """
-    db: Session = SessionLocal()
+    db = SessionLocal()
     product = db.query(Product).filter_by(id=product_id).first()
-    if product is None:
+    if not product:
         db.close()
         return jsonify({'message': 'Product not found'}), 404
 
@@ -236,8 +206,6 @@ def add_review(current_user, product_id):
         description: Отзыв успешно добавлен
       404:
         description: Продукт не найден
-      403:
-        description: Недостаточно прав
     """
     data = request.get_json()
     new_review = Review(
@@ -246,7 +214,7 @@ def add_review(current_user, product_id):
         content=data['content'],
         rating=data['rating']
     )
-    db: Session = SessionLocal()
+    db = SessionLocal()
     db.add(new_review)
     db.commit()
     db.close()
@@ -280,7 +248,7 @@ def get_reviews(product_id):
               rating:
                 type: integer
     """
-    db: Session = SessionLocal()
+    db = SessionLocal()
     reviews = db.query(Review).filter_by(product_id=product_id).all()
     db.close()
     return jsonify([{
@@ -316,9 +284,9 @@ def delete_review(current_user, product_id, review_id):
       403:
         description: Недостаточно прав
     """
-    db: Session = SessionLocal()
+    db = SessionLocal()
     review = db.query(Review).filter_by(id=review_id, product_id=product_id).first()
-    if review is None:
+    if not review:
         db.close()
         return jsonify({'message': 'Review not found'}), 404
 

@@ -10,7 +10,6 @@ import datetime
 bp = Blueprint('routes', __name__)
 bcrypt = Bcrypt()
 
-# Эндпоинт для регистрации
 @bp.route('/register', methods=['POST'])
 def register():
     """
@@ -27,16 +26,12 @@ def register():
           properties:
             username:
               type: string
-              description: Имя пользователя
             email:
               type: string
-              description: Email пользователя
             password:
               type: string
-              description: Пароль пользователя
             role:
               type: string
-              description: Роль пользователя (по умолчанию \"user\")
     responses:
       201:
         description: Пользователь успешно зарегистрирован
@@ -48,8 +43,7 @@ def register():
     role = data.get('role', 'user')
 
     new_user = User(username=data['username'], email=data['email'], password=hashed_password, role=role)
-
-    db: Session = SessionLocal()
+    db = SessionLocal()
     existing_user = db.query(User).filter_by(username=data['username']).first()
     if existing_user:
         db.close()
@@ -58,10 +52,53 @@ def register():
     db.add(new_user)
     db.commit()
     db.close()
-
     return jsonify({'message': 'User registered successfully', 'role': role}), 201
 
-# Эндпоинт для получения токена
+@bp.route('/register_admin', methods=['POST'])
+@token_required
+@role_required('admin')
+def register_admin(current_user):
+    """
+    Регистрация администратора
+    ---
+    tags:
+      - Admin Management
+    security:
+      - Bearer: []
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+            email:
+              type: string
+            password:
+              type: string
+    responses:
+      201:
+        description: Администратор успешно зарегистрирован
+      400:
+        description: Имя пользователя уже существует
+    """
+    data = request.get_json()
+    hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+
+    new_admin = User(username=data['username'], email=data['email'], password=hashed_password, role='admin')
+    db = SessionLocal()
+    existing_user = db.query(User).filter_by(username=data['username']).first()
+    if existing_user:
+        db.close()
+        return jsonify({'message': 'Username already exists'}), 400
+
+    db.add(new_admin)
+    db.commit()
+    db.close()
+    return jsonify({'message': 'Admin registered successfully'}), 201
+
 @bp.route('/login', methods=['POST'])
 def login():
     """
@@ -78,10 +115,8 @@ def login():
           properties:
             username:
               type: string
-              description: Имя пользователя
             password:
               type: string
-              description: Пароль пользователя
     responses:
       200:
         description: Успешный вход в систему
@@ -90,17 +125,14 @@ def login():
           properties:
             access_token:
               type: string
-              description: Токен доступа
             token_type:
               type: string
-              description: Тип токена
       400:
         description: Неверное имя пользователя или пароль
     """
     data = request.get_json()
-    db: Session = SessionLocal()
+    db = SessionLocal()
     user = db.query(User).filter_by(username=data['username']).first()
-
     if not user or not bcrypt.check_password_hash(user.password, data['password']):
         db.close()
         return jsonify({'message': 'Invalid username or password'}), 400
@@ -110,7 +142,6 @@ def login():
     db.close()
     return jsonify({'access_token': token, 'token_type': 'bearer'})
 
-# Защищенный эндпоинт для получения профиля
 @bp.route('/profile', methods=['GET'])
 @token_required
 def get_profile(current_user):
@@ -136,7 +167,6 @@ def get_profile(current_user):
     """
     return jsonify({'username': current_user.username, 'email': current_user.email, 'role': current_user.role})
 
-# Защищенный эндпоинт для обновления профиля
 @bp.route('/profile', methods=['PUT'])
 @token_required
 def update_profile(current_user):
@@ -156,20 +186,18 @@ def update_profile(current_user):
           properties:
             email:
               type: string
-              description: Новый email пользователя
     responses:
       200:
         description: Профиль успешно обновлен
     """
     data = request.get_json()
-    db: Session = SessionLocal()
+    db = SessionLocal()
     db_user = db.query(User).filter_by(username=current_user.username).first()
     db_user.email = data.get('email', db_user.email)
     db.commit()
     db.close()
     return jsonify({'message': 'Profile updated successfully'})
 
-# Защищенный эндпоинт для удаления профиля
 @bp.route('/profile', methods=['DELETE'])
 @token_required
 def delete_profile(current_user):
@@ -184,7 +212,7 @@ def delete_profile(current_user):
       200:
         description: Профиль успешно удален
     """
-    db: Session = SessionLocal()
+    db = SessionLocal()
     db_user = db.query(User).filter_by(username=current_user.username).first()
     db.delete(db_user)
     db.commit()

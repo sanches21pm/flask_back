@@ -5,28 +5,24 @@ from functools import wraps
 from models import User
 from database import SessionLocal
 
-
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = request.headers.get('Authorization')
-
         if not token:
             return jsonify({'message': 'Token is missing!'}), 401
 
         try:
             token = token.split(" ")[1]
             data = jwt.decode(token, 'your_secret_key', algorithms=["HS256"])
-            db = SessionLocal()  # создаем сессию для взаимодействия с базой данных
+            db = SessionLocal()
             current_user = db.query(User).filter_by(username=data['sub']).first()
             db.close()
-        except Exception as e:
+        except Exception:
             return jsonify({'message': 'Token is invalid!'}), 401
 
         return f(current_user, *args, **kwargs)
-
     return decorated
-
 
 def role_required(*roles):
     def decorator(func):
@@ -37,4 +33,3 @@ def role_required(*roles):
             return func(current_user, *args, **kwargs)
         return wrapper
     return decorator
-
