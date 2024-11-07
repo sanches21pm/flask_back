@@ -12,7 +12,7 @@ def create_app():
     app.config.from_object(Config)
     Swagger(app)
 
-    CORS(app, origins="*")
+    CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
     with app.app_context():
         Base.metadata.create_all(bind=engine)
