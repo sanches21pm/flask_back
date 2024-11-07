@@ -1,5 +1,6 @@
 from flask import Flask
 from flasgger import Swagger
+from flask_cors import CORS
 from config import Config
 from database import Base, engine
 from products import products_bp
@@ -9,8 +10,9 @@ from routes import bp as routes_bp
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-
     Swagger(app)
+
+    CORS(app, origins="*")
 
     with app.app_context():
         Base.metadata.create_all(bind=engine)
