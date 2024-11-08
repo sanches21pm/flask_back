@@ -1,0 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter&family=Roboto:wght@400;700&family=Titillium+Web&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+main {
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 1rem;
+  padding-top: 2rem;
+}
+
+h3 {
+  margin-bottom: 1rem;
+}
+
+section ul {
+  list-style: none;
+}
+
+section ul li {
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.content,
+p {
+  padding: 1rem 0;
+}
+
+.centered {
+  text-align: center;
+}
+
+.control {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+
+body {
+  font-family: Arial, sans-serif; /* Основной шрифт приложения */
+  margin: 0; /* Убираем отступы по умолчанию */
+  padding: 0; /* Убираем внутренние отступы */
+  background-color: #f9f9f9; /* Цвет фона страницы */
+  color: #333; /* Цвет текста */
+}
+
+h1 {
+  text-align: center; /* Центрирование заголовка */
+  margin-top: 20px; /* Отступ сверху */
+}
+
+h2 {
+  color: #007bff; /* Цвет заголовков */
+}
+
+form {
+  display: flex; /* Flexbox для управления формой */
+  flex-direction: column; /* Вертикальная ориентация полей формы */
+  gap: 10px; /* Промежутки между полями */
+  max-width: 400px; /* Максимальная ширина формы */
+  margin: 0 auto; /* Центрирование формы */
+  padding: 20px; /* Внутренние отступы формы */
+  background-color: #fff; /* Цвет фона формы */
+  border: 1px solid #ddd; /* Рамка формы */
+  border-radius: 5px; /* Закругление углов */
+}
+
+input {
+  padding: 10px; /* Внутренние отступы для полей ввода */
+  border: 1px solid #ccc; /* Рамка полей ввода */
+  border-radius: 5px; /* Закругление углов полей ввода */
+ 
+
+}
+
+input#username{
+  right: 0;
+}
+
+button {
+  padding: 10px; /* Внутренние отступы для кнопок */
+  background-color: #007bff; /* Цвет фона кнопок */
+  color: #fff; /* Цвет текста кнопок */
+  border: none; /* Убираем рамку */
+  border-radius: 5px; /* Закругление углов кнопок */
+  cursor: pointer; /* Указываем, что кнопка кликабельная */
+}
+
+button:hover {
+  background-color: #0056b3; 
+}
+label{
+
+}
+div{
+
+}
+

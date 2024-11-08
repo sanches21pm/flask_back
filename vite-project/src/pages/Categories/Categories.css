@@ -1,0 +1,84 @@
+.categories-container {
+  width: 100%;
+  max-width: 1200px;
+  padding: 20px;
+  margin: 0 auto;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+/* Карточка категории */
+.category-card {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+/* Карточка "Добавить категорию" */
+.add-category-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: #f0f8ff;
+  border: 2px dashed #007bff;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.add-category-icon {
+  font-size: 40px;
+  color: #007bff;
+  margin-bottom: 10px;
+  transition: color 0.2s ease;
+}
+
+.add-category-icon:hover {
+  color: #0056b3;
+}
+
+.add-category-text {
+  font-size: 18px;
+  color: #007bff;
+}
+
+/* Стили изображения категории */
+.category-image {
+  width: 100%;
+  height: auto;
+  border-bottom: 1px solid #ddd;
+}
+
+.category-name {
+  font-size: 20px;
+  margin: 15px 0;
+  color: #333;
+}
+
+.category-description {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.category-link {
+  display: inline-block;
+  padding: 10px 15px;
+  font-size: 14px;
+  color: white;
+  background-color: #007bff;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.category-link:hover {
+  background-color: #0056b3;
+}
