@@ -158,6 +158,8 @@ def get_profile(current_user):
         schema:
           type: object
           properties:
+            id:
+              type: integer
             username:
               type: string
             email:
@@ -165,7 +167,12 @@ def get_profile(current_user):
             role:
               type: string
     """
-    return jsonify({'username': current_user.username, 'email': current_user.email, 'role': current_user.role})
+    return jsonify({
+        'id': current_user.id,
+        'username': current_user.username,
+        'email': current_user.email,
+        'role': current_user.role
+    })
 
 @bp.route('/profile', methods=['PUT'])
 @token_required
