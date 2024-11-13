@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from models import Category, Product
+from models import Category, Product, ProductImage
 from auth import token_required, role_required
 
 categories_bp = Blueprint('categories', __name__)
@@ -185,6 +185,9 @@ def list_products_in_category(category_id):
                 type: number
               category_id:
                 type: integer
+              image_url:
+                type: string
+                description: URL изображения продукта
       404:
         description: Категория не найдена
     """
@@ -201,5 +204,6 @@ def list_products_in_category(category_id):
         'name': product.name,
         'description': product.description,
         'price': product.price,
-        'category_id': product.category_id
+        'category_id': product.category_id,
+        'image_url': product.images[0].image_url if product.images else None
     } for product in products])
