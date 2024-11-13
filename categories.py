@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import Category, Product, ProductImage
 from auth import token_required, role_required
+from sqlalchemy.orm import joinedload
 from flask import current_app
 import os
 
@@ -160,6 +161,7 @@ def delete_category(current_user, category_id):
     db.close()
     return jsonify({'message': 'Category deleted successfully'})
 
+
 @categories_bp.route('/categories/<int:category_id>/products', methods=['GET'])
 def list_products_in_category(category_id):
     """Получить список продуктов в категории
@@ -202,13 +204,17 @@ def list_products_in_category(category_id):
         db.close()
         return jsonify({'message': 'Category not found'}), 404
 
-    products = db.query(Product).filter_by(category_id=category_id).all()
-    db.close()
-    return jsonify([{
+    # Подгружаем связанные изображения с продуктами
+    products = db.query(Product).options(joinedload(Product.images)).filter_by(category_id=category_id).all()
+
+    product_list = [{
         'id': product.id,
         'name': product.name,
         'description': product.description,
         'price': product.price,
         'category_id': product.category_id,
         'image_url': get_image_url(product.images[0].image_url) if product.images else None
-    } for product in products])
+    } for product in products]
+
+    db.close()
+    return jsonify(product_list)
