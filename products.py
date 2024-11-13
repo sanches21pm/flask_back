@@ -15,7 +15,10 @@ def save_image(file):
     filename = secure_filename(file.filename)
     file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
     file.save(file_path)
-    return file_path
+    return filename  # Return just the filename to construct a URL later
+
+def get_image_url(filename):
+    return f"{current_app.config['BASE_URL']}/static/uploads/{filename}"
 
 @products_bp.route('/products', methods=['GET'])
 def list_products():
@@ -53,7 +56,7 @@ def list_products():
         'description': product.description,
         'price': product.price,
         'category_id': product.category_id,
-        'image_url': product.images[0].image_url if product.images else None
+        'image_url': get_image_url(product.images[0].image_url) if product.images else None
     } for product in products]
     db.close()
     return jsonify(product_list)
@@ -114,8 +117,8 @@ def add_product(current_user):
 
     if 'image' in request.files and allowed_file(request.files['image'].filename):
         file = request.files['image']
-        file_path = save_image(file)
-        product_image = ProductImage(product_id=new_product.id, image_url=file_path)
+        filename = save_image(file)
+        product_image = ProductImage(product_id=new_product.id, image_url=filename)
         db.add(product_image)
         db.commit()
 
@@ -179,12 +182,12 @@ def update_product(current_user, product_id):
 
     if 'image' in request.files and allowed_file(request.files['image'].filename):
         file = request.files['image']
-        file_path = save_image(file)
+        filename = save_image(file)
         product_image = db.query(ProductImage).filter_by(product_id=product_id).first()
         if product_image:
-            product_image.image_url = file_path
+            product_image.image_url = filename
         else:
-            new_image = ProductImage(product_id=product_id, image_url=file_path)
+            new_image = ProductImage(product_id=product_id, image_url=filename)
             db.add(new_image)
 
     db.commit()
@@ -231,7 +234,7 @@ def get_product(product_id):
         db.close()
         return jsonify({'message': 'Product not found'}), 404
 
-    image_url = product.images[0].image_url if product.images else None
+    image_url = get_image_url(product.images[0].image_url) if product.images else None
     product_data = {
         'id': product.id,
         'name': product.name,

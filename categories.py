@@ -1,10 +1,15 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import Category, Product, ProductImage
 from auth import token_required, role_required
+from flask import current_app
+import os
 
 categories_bp = Blueprint('categories', __name__)
+
+def get_image_url(filename):
+    return f"{current_app.config['BASE_URL']}/static/uploads/{filename}"
 
 @categories_bp.route('/categories', methods=['GET'])
 def list_categories():
@@ -205,5 +210,5 @@ def list_products_in_category(category_id):
         'description': product.description,
         'price': product.price,
         'category_id': product.category_id,
-        'image_url': product.images[0].image_url if product.images else None
+        'image_url': get_image_url(product.images[0].image_url) if product.images else None
     } for product in products])
