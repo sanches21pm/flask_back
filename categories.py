@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from models import Category, Product, ProductImage
